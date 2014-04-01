@@ -2,7 +2,7 @@
 Hoep
 ====
 
-Hoep is a Python binding for the Hoedown Markdown library.
+Hoep is a Python binding for the `Hoedown`_ Markdown library.
 
 
 Install
@@ -176,6 +176,7 @@ If you run into any issues or have any questions, either open an `issue`_ or hop
 
 
 .. _#mynt: http://webchat.freenode.net/?channels=mynt
+.. _Hoedown: https://github.com/hoedown/hoedown
 .. _issue: https://github.com/Anomareh/Hoep/issues
 .. _Markdown Extra style footnotes: http://michelf.ca/projects/php-markdown/extra/#footnotes
 .. _Markdown Extra style tables: http://michelf.ca/projects/php-markdown/extra/#table
@@ -203,7 +204,7 @@ _sources = [
 
 setup(
     name = 'hoep',
-    version = '1.0',
+    version = '1.0.1-dev',
     author = 'Andrew Fricke',
     author_email = 'andrew@uhnomoli.com',
     url = 'https://github.com/Anomareh/Hoep',
