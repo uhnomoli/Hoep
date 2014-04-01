@@ -7,7 +7,7 @@ Hoep is a Python binding for the [Hoedown][hoedown] Markdown library.
 
 ## Install
 
-Hoep is available on PyPi so installation is only a quick `pip` away.
+Hoep is available on PyPI so installation is only a quick `pip` away.
 
     $ pip install hoep
 
