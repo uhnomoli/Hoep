@@ -15,12 +15,15 @@ static PyObject *to_unicode(const hoedown_buffer *buffer) {
 
 
 static PyObject *call_method(void *opaque, const char *method_name, const char *format, va_list va_args) {
-    PyObject *self = ((hoedown_html_renderer_state *) opaque)->opaque;
+    PyObject *self, *method, *args;
     
-    PyObject *method = PyObject_GetAttrString(self, method_name);
+    
+    self = ((hoedown_html_renderer_state *) opaque)->opaque;
+    
+    method = PyObject_GetAttrString(self, method_name);
     if (method == NULL) return NULL;
     
-    PyObject *args = Py_VaBuildValue(format, va_args);
+    args = Py_VaBuildValue(format, va_args);
     if (args == NULL) goto exc;
     
     return PyObject_CallObject(method, args);
@@ -33,17 +36,19 @@ static PyObject *call_method(void *opaque, const char *method_name, const char *
 
 static int process(void *opaque, hoedown_buffer *buffer, const char *method_name, const char *format, ...) {
     va_list va_args;
+    PyObject *ret, *string, *exc, *message;
+    
     
     va_start(va_args, format);
     
-    PyObject *ret = call_method(opaque, method_name, format, va_args);
+    ret = call_method(opaque, method_name, format, va_args);
     
     va_end(va_args);
     
     if (ret == NULL) goto exc;
     
     if (!PyUnicode_Check(ret)) {
-        PyObject *message = PyString_FromFormat("must return unicode, %s received", ret->ob_type->tp_name);
+        message = PyString_FromFormat("must return unicode, %s received", ret->ob_type->tp_name);
         
         PyErr_SetString(PyExc_TypeError, PyString_AsString(message));
         
@@ -52,7 +57,7 @@ static int process(void *opaque, hoedown_buffer *buffer, const char *method_name
         goto exc_ret;
     }
     
-    PyObject *string = PyUnicode_AsUTF8String(ret);
+    string = PyUnicode_AsUTF8String(ret);
     if (string == NULL) goto exc_ret;
     
     hoedown_buffer_puts(buffer, PyString_AsString(string));
@@ -65,7 +70,7 @@ static int process(void *opaque, hoedown_buffer *buffer, const char *method_name
     exc_ret:
         Py_DECREF(ret);
     exc:;
-        PyObject *exc = PyErr_Occurred();
+        exc = PyErr_Occurred();
         
         if (exc != NULL) {
             PyErr_Print();
@@ -76,8 +81,11 @@ static int process(void *opaque, hoedown_buffer *buffer, const char *method_name
 
 /* Block level callbacks. */
 static void hoep_block_code(hoedown_buffer *buffer, const hoedown_buffer *text, const hoedown_buffer *language, void *opaque) {
-    PyObject *utext = to_unicode(text);
-    PyObject *ulanguage = to_unicode(language);
+    PyObject *utext, *ulanguage;
+    
+    
+    utext = to_unicode(text);
+    ulanguage = to_unicode(language);
     
     process(opaque, buffer, "block_code", "(NN)", utext, ulanguage);
     
@@ -86,7 +94,10 @@ static void hoep_block_code(hoedown_buffer *buffer, const hoedown_buffer *text, 
 }
 
 static void hoep_block_html(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    
+    
+    utext = to_unicode(text);
     
     process(opaque, buffer, "block_html", "(N)", utext);
     
@@ -94,7 +105,10 @@ static void hoep_block_html(hoedown_buffer *buffer, const hoedown_buffer *text, 
 }
 
 static void hoep_block_quote(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    
+    
+    utext = to_unicode(text);
     
     process(opaque, buffer, "block_quote", "(N)", utext);
     
@@ -102,7 +116,10 @@ static void hoep_block_quote(hoedown_buffer *buffer, const hoedown_buffer *text,
 }
 
 static void hoep_footnotes(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    
+    
+    utext = to_unicode(text);
     
     process(opaque, buffer, "footnotes", "(N)", utext);
     
@@ -110,7 +127,10 @@ static void hoep_footnotes(hoedown_buffer *buffer, const hoedown_buffer *text, v
 }
 
 static void hoep_footnote_def(hoedown_buffer *buffer, const hoedown_buffer *text, unsigned int number, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    
+    
+    utext = to_unicode(text);
     
     process(opaque, buffer, "footnote_def", "(Ni)", utext, number);
     
@@ -118,7 +138,10 @@ static void hoep_footnote_def(hoedown_buffer *buffer, const hoedown_buffer *text
 }
 
 static void hoep_header(hoedown_buffer *buffer, const hoedown_buffer *text, int level, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    
+    
+    utext = to_unicode(text);
     
     process(opaque, buffer, "header", "(Ni)", utext, level);
     
@@ -130,8 +153,11 @@ static void hoep_hrule(hoedown_buffer *buffer, void *opaque) {
 }
 
 static void hoep_list(hoedown_buffer *buffer, const hoedown_buffer *text, unsigned int flags, void *opaque) {
-    PyObject *utext = to_unicode(text);
-    PyObject *ordered = flags & HOEDOWN_LIST_ORDERED ? Py_True : Py_False;
+    PyObject *utext, *ordered;
+    
+    
+    utext = to_unicode(text);
+    ordered = flags & HOEDOWN_LIST_ORDERED ? Py_True : Py_False;
     
     process(opaque, buffer, "list", "(NO)", utext, ordered);
     
@@ -140,8 +166,11 @@ static void hoep_list(hoedown_buffer *buffer, const hoedown_buffer *text, unsign
 }
 
 static void hoep_list_item(hoedown_buffer *buffer, const hoedown_buffer *text, unsigned int flags, void *opaque) {
-    PyObject *utext = to_unicode(text);
-    PyObject *ordered = flags & HOEDOWN_LIST_ORDERED ? Py_True : Py_False;
+    PyObject *utext, *ordered;
+    
+    
+    utext = to_unicode(text);
+    ordered = flags & HOEDOWN_LIST_ORDERED ? Py_True : Py_False;
     
     process(opaque, buffer, "list_item", "(NO)", utext, ordered);
     
@@ -150,7 +179,10 @@ static void hoep_list_item(hoedown_buffer *buffer, const hoedown_buffer *text, u
 }
 
 static void hoep_paragraph(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    
+    
+    utext = to_unicode(text);
     
     process(opaque, buffer, "paragraph", "(N)", utext);
     
@@ -158,8 +190,11 @@ static void hoep_paragraph(hoedown_buffer *buffer, const hoedown_buffer *text, v
 }
 
 static void hoep_table(hoedown_buffer *buffer, const hoedown_buffer *header, const hoedown_buffer *body, void *opaque) {
-    PyObject *uheader = to_unicode(header);
-    PyObject *ubody = to_unicode(body);
+    PyObject *uheader, *ubody;
+    
+    
+    uheader = to_unicode(header);
+    ubody = to_unicode(body);
     
     process(opaque, buffer, "table", "(NN)", uheader, ubody);
     
@@ -168,7 +203,10 @@ static void hoep_table(hoedown_buffer *buffer, const hoedown_buffer *header, con
 }
 
 static void hoep_table_row(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    
+    
+    utext = to_unicode(text);
     
     process(opaque, buffer, "table_row", "(N)", utext);
     
@@ -176,7 +214,10 @@ static void hoep_table_row(hoedown_buffer *buffer, const hoedown_buffer *text, v
 }
 
 static void hoep_table_cell(hoedown_buffer *buffer, const hoedown_buffer *text, unsigned int flags, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    
+    
+    utext = to_unicode(text);
     
     process(opaque, buffer, "table_cell", "(Ni)", utext, flags);
     
@@ -186,10 +227,14 @@ static void hoep_table_cell(hoedown_buffer *buffer, const hoedown_buffer *text, 
 
 /* Span level callbacks. */
 static int hoep_autolink(hoedown_buffer *buffer, const hoedown_buffer *link, enum hoedown_autolink type, void *opaque) {
-    PyObject *ulink = to_unicode(link);
-    PyObject *is_email = type == HOEDOWN_AUTOLINK_EMAIL ? Py_True : Py_False;
+    PyObject *ulink, *is_email;
+    int ret;
     
-    int ret = process(opaque, buffer, "autolink", "(NO)", ulink, is_email);
+    
+    ulink = to_unicode(link);
+    is_email = type == HOEDOWN_AUTOLINK_EMAIL ? Py_True : Py_False;
+    
+    ret = process(opaque, buffer, "autolink", "(NO)", ulink, is_email);
     
     Py_DECREF(is_email);
     Py_DECREF(ulink);
@@ -198,9 +243,13 @@ static int hoep_autolink(hoedown_buffer *buffer, const hoedown_buffer *link, enu
 }
 
 static int hoep_codespan(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    int ret;
     
-    int ret = process(opaque, buffer, "codespan", "(N)", utext);
+    
+    utext = to_unicode(text);
+    
+    ret = process(opaque, buffer, "codespan", "(N)", utext);
     
     Py_DECREF(utext);
     
@@ -208,9 +257,13 @@ static int hoep_codespan(hoedown_buffer *buffer, const hoedown_buffer *text, voi
 }
 
 static int hoep_double_emphasis(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    int ret;
     
-    int ret = process(opaque, buffer, "double_emphasis", "(N)", utext);
+    
+    utext = to_unicode(text);
+    
+    ret = process(opaque, buffer, "double_emphasis", "(N)", utext);
     
     Py_DECREF(utext);
     
@@ -218,9 +271,13 @@ static int hoep_double_emphasis(hoedown_buffer *buffer, const hoedown_buffer *te
 }
 
 static int hoep_emphasis(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    int ret;
     
-    int ret = process(opaque, buffer, "emphasis", "(N)", utext);
+    
+    utext = to_unicode(text);
+    
+    ret = process(opaque, buffer, "emphasis", "(N)", utext);
     
     Py_DECREF(utext);
     
@@ -232,9 +289,13 @@ static int hoep_footnote_ref(hoedown_buffer *buffer, unsigned int number, void *
 }
 
 static int hoep_highlight(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    int ret;
     
-    int ret = process(opaque, buffer, "highlight", "(N)", utext);
+    
+    utext = to_unicode(text);
+    
+    ret = process(opaque, buffer, "highlight", "(N)", utext);
     
     Py_DECREF(utext);
     
@@ -242,11 +303,15 @@ static int hoep_highlight(hoedown_buffer *buffer, const hoedown_buffer *text, vo
 }
 
 static int hoep_image(hoedown_buffer *buffer, const hoedown_buffer *link, const hoedown_buffer *title, const hoedown_buffer *alt, void *opaque) {
-    PyObject *ulink = to_unicode(link);
-    PyObject *utitle = to_unicode(title);
-    PyObject *ualt = to_unicode(alt);
+    PyObject *ulink, *utitle, *ualt;
+    int ret;
     
-    int ret = process(opaque, buffer, "image", "(NNN)", ulink, utitle, ualt);
+    
+    ulink = to_unicode(link);
+    utitle = to_unicode(title);
+    ualt = to_unicode(alt);
+    
+    ret = process(opaque, buffer, "image", "(NNN)", ulink, utitle, ualt);
     
     Py_DECREF(ualt);
     Py_DECREF(utitle);
@@ -260,11 +325,15 @@ static int hoep_line_break(hoedown_buffer *buffer, void *opaque) {
 }
 
 static int hoep_link(hoedown_buffer *buffer, const hoedown_buffer *link, const hoedown_buffer *title, const hoedown_buffer *content, void *opaque) {
-    PyObject *ulink = to_unicode(link);
-    PyObject *utitle = to_unicode(title);
-    PyObject *ucontent = to_unicode(content);
+    PyObject *ulink, *utitle, *ucontent;
+    int ret;
     
-    int ret = process(opaque, buffer, "link", "(NNN)", ulink, utitle, ucontent);
+    
+    ulink = to_unicode(link);
+    utitle = to_unicode(title);
+    ucontent = to_unicode(content);
+    
+    ret = process(opaque, buffer, "link", "(NNN)", ulink, utitle, ucontent);
     
     Py_DECREF(ucontent);
     Py_DECREF(utitle);
@@ -274,9 +343,13 @@ static int hoep_link(hoedown_buffer *buffer, const hoedown_buffer *link, const h
 }
 
 static int hoep_quote(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    int ret;
     
-    int ret = process(opaque, buffer, "quote", "(N)", utext);
+    
+    utext = to_unicode(text);
+    
+    ret = process(opaque, buffer, "quote", "(N)", utext);
     
     Py_DECREF(utext);
     
@@ -284,9 +357,13 @@ static int hoep_quote(hoedown_buffer *buffer, const hoedown_buffer *text, void *
 }
 
 static int hoep_raw_html_tag(hoedown_buffer *buffer, const hoedown_buffer *tag, void *opaque) {
-    PyObject *utag = to_unicode(tag);
+    PyObject *utag;
+    int ret;
     
-    int ret = process(opaque, buffer, "raw_html_tag", "(N)", utag);
+    
+    utag = to_unicode(tag);
+    
+    ret = process(opaque, buffer, "raw_html_tag", "(N)", utag);
     
     Py_DECREF(utag);
     
@@ -294,9 +371,13 @@ static int hoep_raw_html_tag(hoedown_buffer *buffer, const hoedown_buffer *tag, 
 }
 
 static int hoep_strikethrough(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    int ret;
     
-    int ret = process(opaque, buffer, "strikethrough", "(N)", utext);
+    
+    utext = to_unicode(text);
+    
+    ret = process(opaque, buffer, "strikethrough", "(N)", utext);
     
     Py_DECREF(utext);
     
@@ -304,9 +385,13 @@ static int hoep_strikethrough(hoedown_buffer *buffer, const hoedown_buffer *text
 }
 
 static int hoep_superscript(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    int ret;
     
-    int ret = process(opaque, buffer, "superscript", "(N)", utext);
+    
+    utext = to_unicode(text);
+    
+    ret = process(opaque, buffer, "superscript", "(N)", utext);
     
     Py_DECREF(utext);
     
@@ -314,9 +399,13 @@ static int hoep_superscript(hoedown_buffer *buffer, const hoedown_buffer *text, 
 }
 
 static int hoep_triple_emphasis(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    int ret;
     
-    int ret = process(opaque, buffer, "triple_emphasis", "(N)", utext);
+    
+    utext = to_unicode(text);
+    
+    ret = process(opaque, buffer, "triple_emphasis", "(N)", utext);
     
     Py_DECREF(utext);
     
@@ -324,9 +413,13 @@ static int hoep_triple_emphasis(hoedown_buffer *buffer, const hoedown_buffer *te
 }
 
 static int hoep_underline(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    int ret;
     
-    int ret = process(opaque, buffer, "underline", "(N)", utext);
+    
+    utext = to_unicode(text);
+    
+    ret = process(opaque, buffer, "underline", "(N)", utext);
     
     Py_DECREF(utext);
     
@@ -336,7 +429,10 @@ static int hoep_underline(hoedown_buffer *buffer, const hoedown_buffer *text, vo
 
 /* Low-level callbacks. */
 static void hoep_entity(hoedown_buffer *buffer, const hoedown_buffer *entity, void *opaque) {
-    PyObject *uentity = to_unicode(entity);
+    PyObject *uentity;
+    
+    
+    uentity = to_unicode(entity);
     
     process(opaque, buffer, "entity", "(N)", uentity);
     
@@ -344,7 +440,10 @@ static void hoep_entity(hoedown_buffer *buffer, const hoedown_buffer *entity, vo
 }
 
 static void hoep_normal_text(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {
-    PyObject *utext = to_unicode(text);
+    PyObject *utext;
+    
+    
+    utext = to_unicode(text);
     
     process(opaque, buffer, "normal_text", "(N)", utext);
     

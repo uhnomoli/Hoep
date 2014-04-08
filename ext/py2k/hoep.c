@@ -23,22 +23,28 @@ typedef struct {
 static PyObject *render(PyObject *self, PyObject *args, PyObject *kwargs) {
     static char *kwparams[] = {"markdown", "extensions", "render_flags", NULL};
     
-    PyObject *unicode, *markdown, *smartypants, *html;
+    hoedown_renderer *renderer;
+    hoedown_document *document;
+    hoedown_buffer *buffer;
     unsigned int extensions = 0, render_flags = 0;
+    const uint8_t *md, *sp;
+    Py_ssize_t md_size, sp_size;
+    PyObject *unicode, *markdown, *smartypants, *html;
+    
     
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "U|II", kwparams, &unicode, &extensions, &render_flags)) {
         return NULL;
     }
     
-    hoedown_renderer *renderer = hoedown_html_renderer_new(render_flags, 0);
-    hoedown_document *document = hoedown_document_new(renderer, extensions, 16);
-    hoedown_buffer *buffer = hoedown_buffer_new(16);
+    renderer = hoedown_html_renderer_new(render_flags, 0);
+    document = hoedown_document_new(renderer, extensions, 16);
+    buffer = hoedown_buffer_new(16);
     
     /* markdown */
     markdown = PyUnicode_AsUTF8String(unicode);
     
-    const uint8_t *md = (const uint8_t *) PyString_AsString(markdown);
-    Py_ssize_t md_size = PyString_Size(markdown);
+    md = (const uint8_t *) PyString_AsString(markdown);
+    md_size = PyString_Size(markdown);
     
     hoedown_document_render(document, buffer, md, md_size);
     
@@ -48,8 +54,8 @@ static PyObject *render(PyObject *self, PyObject *args, PyObject *kwargs) {
     if (render_flags & HOEP_HTML_SMARTYPANTS) {
         smartypants = PyString_FromStringAndSize((const char *) buffer->data, buffer->size);
         
-        const uint8_t *sp = (const uint8_t *) PyString_AsString(smartypants);
-        Py_ssize_t sp_size = PyString_Size(smartypants);
+        sp = (const uint8_t *) PyString_AsString(smartypants);
+        sp_size = PyString_Size(smartypants);
         
         hoedown_buffer_reset(buffer);
         hoedown_html_smartypants(buffer, sp, sp_size);
@@ -70,6 +76,11 @@ static PyObject *render(PyObject *self, PyObject *args, PyObject *kwargs) {
 static int Hoep_init(Hoep *self, PyObject *args, PyObject *kwargs) {
     static char *kwparams[] = {"extensions", "render_flags", NULL};
     
+    hoedown_html_renderer_state *state;
+    void **hd_callbacks, **hp_callbacks;
+    int i;
+    
+    
     self->extensions = 0;
     self->render_flags = 0;
     
@@ -79,13 +90,12 @@ static int Hoep_init(Hoep *self, PyObject *args, PyObject *kwargs) {
     
     self->renderer = hoedown_html_renderer_new(self->render_flags, 0);
     
-    hoedown_html_renderer_state *state = self->renderer->opaque;
+    state = self->renderer->opaque;
     state->opaque = self;
     
-    void **hd_callbacks = (void **) self->renderer;
-    void **hp_callbacks = (void **) &hoep_callbacks;
+    hd_callbacks = (void **) self->renderer;
+    hp_callbacks = (void **) &hoep_callbacks;
     
-    int i;
     for (i = 0; method_names[i] != NULL; i++) {
         if (PyObject_HasAttrString((PyObject *) self, (const char *) method_names[i])) {
             hd_callbacks[i + 1] = hp_callbacks[i + 1];
@@ -99,7 +109,10 @@ static int Hoep_init(Hoep *self, PyObject *args, PyObject *kwargs) {
 }
 
 static PyObject *Hoep_render(Hoep *self, PyObject *args) {
-    PyObject *unicode, *pre, *markdown, *smartypants, *html, *post;
+    const uint8_t *md, *sp;
+    Py_ssize_t md_size, sp_size;
+    PyObject *unicode, *pre, *markdown, *smartypants, *html, *post, *message;
+    
     
     if (!PyArg_ParseTuple(args, "U", &unicode)) {
         return NULL;
@@ -119,8 +132,8 @@ static PyObject *Hoep_render(Hoep *self, PyObject *args) {
     }
     
     /* markdown */
-    const uint8_t *md = (const uint8_t *) PyString_AsString(markdown);
-    Py_ssize_t md_size = PyString_Size(markdown);
+    md = (const uint8_t *) PyString_AsString(markdown);
+    md_size = PyString_Size(markdown);
     
     hoedown_document_render(self->document, self->buffer, md, md_size);
     
@@ -130,8 +143,8 @@ static PyObject *Hoep_render(Hoep *self, PyObject *args) {
     if (self->render_flags & HOEP_HTML_SMARTYPANTS) {
         smartypants = PyString_FromStringAndSize((const char *) self->buffer->data, self->buffer->size);
         
-        const uint8_t *sp = (const uint8_t *) PyString_AsString(smartypants);
-        Py_ssize_t sp_size = PyString_Size(smartypants);
+        sp = (const uint8_t *) PyString_AsString(smartypants);
+        sp_size = PyString_Size(smartypants);
         
         hoedown_buffer_reset(self->buffer);
         hoedown_html_smartypants(self->buffer, sp, sp_size);
@@ -157,7 +170,7 @@ static PyObject *Hoep_render(Hoep *self, PyObject *args) {
     return html;
     
     exc_post_u:;
-        PyObject *message = PyString_FromFormat("must return unicode, %s received", html->ob_type->tp_name);
+        message = PyString_FromFormat("must return unicode, %s received", html->ob_type->tp_name);
         
         PyErr_SetString(PyExc_TypeError, PyString_AsString(message));
         

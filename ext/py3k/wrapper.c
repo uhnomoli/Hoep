@@ -6,12 +6,15 @@
 
 
 static PyObject *call_method(void *opaque, const char *method_name, const char *format, va_list va_args) {
-    PyObject *self = ((hoedown_html_renderer_state *) opaque)->opaque;
+    PyObject *self, *method, *args;
     
-    PyObject *method = PyObject_GetAttrString(self, method_name);
+    
+    self = ((hoedown_html_renderer_state *) opaque)->opaque;
+    
+    method = PyObject_GetAttrString(self, method_name);
     if (method == NULL) return NULL;
     
-    PyObject *args = Py_VaBuildValue(format, va_args);
+    args = Py_VaBuildValue(format, va_args);
     if (args == NULL) goto exc;
     
     return PyObject_CallObject(method, args);
@@ -24,17 +27,19 @@ static PyObject *call_method(void *opaque, const char *method_name, const char *
 
 static int process(void *opaque, hoedown_buffer *buffer, const char *method_name, const char *format, ...) {
     va_list va_args;
+    PyObject *ret, *exc, *message;
+    
     
     va_start(va_args, format);
     
-    PyObject *ret = call_method(opaque, method_name, format, va_args);
+    ret = call_method(opaque, method_name, format, va_args);
     
     va_end(va_args);
     
     if (ret == NULL) goto exc;
     
     if (!PyUnicode_Check(ret)) {
-        PyObject *message = PyUnicode_FromFormat("must return str, %s received", Py_TYPE(ret)->tp_name);
+        message = PyUnicode_FromFormat("must return str, %s received", Py_TYPE(ret)->tp_name);
         
         PyErr_SetString(PyExc_TypeError, PyUnicode_AsUTF8(message));
         
@@ -52,7 +57,7 @@ static int process(void *opaque, hoedown_buffer *buffer, const char *method_name
     exc_ret:
         Py_DECREF(ret);
     exc:;
-        PyObject *exc = PyErr_Occurred();
+        exc = PyErr_Occurred();
         
         if (exc != NULL) {
             PyErr_Print();
@@ -100,7 +105,10 @@ static void hoep_hrule(hoedown_buffer *buffer, void *opaque) {
 }
 
 static void hoep_list(hoedown_buffer *buffer, const hoedown_buffer *text, unsigned int flags, void *opaque) {
-    PyObject *ordered = flags & HOEDOWN_LIST_ORDERED ? Py_True : Py_False;
+    PyObject *ordered;
+    
+    
+    ordered = flags & HOEDOWN_LIST_ORDERED ? Py_True : Py_False;
     
     process(opaque, buffer, "list", "(s#O)",
         text->data, text->size,
@@ -110,7 +118,10 @@ static void hoep_list(hoedown_buffer *buffer, const hoedown_buffer *text, unsign
 }
 
 static void hoep_list_item(hoedown_buffer *buffer, const hoedown_buffer *text, unsigned int flags, void *opaque) {
-    PyObject *ordered = flags & HOEDOWN_LIST_ORDERED ? Py_True : Py_False;
+    PyObject *ordered;
+    
+    
+    ordered = flags & HOEDOWN_LIST_ORDERED ? Py_True : Py_False;
     
     process(opaque, buffer, "list_item", "(s#O)",
         text->data, text->size,
@@ -144,9 +155,13 @@ static void hoep_table_cell(hoedown_buffer *buffer, const hoedown_buffer *text, 
 
 /* Span level callbacks. */
 static int hoep_autolink(hoedown_buffer *buffer, const hoedown_buffer *link, enum hoedown_autolink type, void *opaque) {
-    PyObject *is_email = type == HOEDOWN_AUTOLINK_EMAIL ? Py_True : Py_False;
+    PyObject *is_email;
+    int ret;
     
-    int ret = process(opaque, buffer, "autolink", "(s#O)",
+    
+    is_email = type == HOEDOWN_AUTOLINK_EMAIL ? Py_True : Py_False;
+    
+    ret = process(opaque, buffer, "autolink", "(s#O)",
         link->data, link->size,
         is_email);
     
