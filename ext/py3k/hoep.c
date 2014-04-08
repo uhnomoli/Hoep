@@ -23,18 +23,23 @@ typedef struct {
 static PyObject *render(PyObject *self, PyObject *args, PyObject *kwargs) {
     static char *kwparams[] = {"markdown", "extensions", "render_flags", NULL};
     
-    const char *md;
-    Py_ssize_t md_size;
-    PyObject *smartypants, *html;
+    hoedown_renderer *renderer;
+    hoedown_document *document;
+    hoedown_buffer *buffer;
     unsigned int extensions = 0, render_flags = 0;
+    const char *md;
+    const uint8_t *sp;
+    Py_ssize_t md_size, sp_size;
+    PyObject *smartypants, *html;
+    
     
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|II", kwparams, &md, &extensions, &render_flags)) {
         return NULL;
     }
     
-    hoedown_renderer *renderer = hoedown_html_renderer_new(render_flags, 0);
-    hoedown_document *document = hoedown_document_new(renderer, extensions, 16);
-    hoedown_buffer *buffer = hoedown_buffer_new(16);
+    renderer = hoedown_html_renderer_new(render_flags, 0);
+    document = hoedown_document_new(renderer, extensions, 16);
+    buffer = hoedown_buffer_new(16);
     
     /* markdown */
     md_size = (Py_ssize_t) strlen(md);
@@ -45,8 +50,7 @@ static PyObject *render(PyObject *self, PyObject *args, PyObject *kwargs) {
     if (render_flags & HOEP_HTML_SMARTYPANTS) {
         smartypants = PyUnicode_DecodeUTF8((const char *) buffer->data, buffer->size, "strict");
         
-        Py_ssize_t sp_size;
-        const uint8_t *sp = (const uint8_t *) PyUnicode_AsUTF8AndSize(smartypants, &sp_size);
+        sp = (const uint8_t *) PyUnicode_AsUTF8AndSize(smartypants, &sp_size);
         
         hoedown_buffer_reset(buffer);
         hoedown_html_smartypants(buffer, sp, sp_size);
@@ -67,6 +71,11 @@ static PyObject *render(PyObject *self, PyObject *args, PyObject *kwargs) {
 static int Hoep_init(Hoep *self, PyObject *args, PyObject *kwargs) {
     static char *kwparams[] = {"extensions", "render_flags", NULL};
     
+    hoedown_html_renderer_state *state;
+    void **hd_callbacks, **hp_callbacks;
+    int i;
+    
+    
     self->extensions = 0;
     self->render_flags = 0;
     
@@ -76,13 +85,12 @@ static int Hoep_init(Hoep *self, PyObject *args, PyObject *kwargs) {
     
     self->renderer = hoedown_html_renderer_new(self->render_flags, 0);
     
-    hoedown_html_renderer_state *state = self->renderer->opaque;
+    state = self->renderer->opaque;
     state->opaque = self;
     
-    void **hd_callbacks = (void **) self->renderer;
-    void **hp_callbacks = (void **) &hoep_callbacks;
+    hd_callbacks = (void **) self->renderer;
+    hp_callbacks = (void **) &hoep_callbacks;
     
-    int i;
     for (i = 0; method_names[i] != NULL; i++) {
         if (PyObject_HasAttrString((PyObject *) self, (const char *) method_names[i])) {
             hd_callbacks[i + 1] = hp_callbacks[i + 1];
@@ -97,8 +105,10 @@ static int Hoep_init(Hoep *self, PyObject *args, PyObject *kwargs) {
 
 static PyObject *Hoep_render(Hoep *self, PyObject *args) {
     const char *str;
-    Py_ssize_t str_size;
-    PyObject *markdown, *smartypants, *html;
+    const uint8_t *md, *sp;
+    Py_ssize_t str_size, md_size, sp_size;
+    PyObject *markdown, *smartypants, *html, *message;
+    
     
     if (!PyArg_ParseTuple(args, "s", &str)) {
         return NULL;
@@ -112,8 +122,7 @@ static PyObject *Hoep_render(Hoep *self, PyObject *args) {
         if (markdown == NULL) return NULL;
         if (!PyUnicode_Check(markdown)) goto exc_pre;
         
-        Py_ssize_t md_size;
-        const uint8_t *md = (const uint8_t *) PyUnicode_AsUTF8AndSize(markdown, &md_size);
+        md = (const uint8_t *) PyUnicode_AsUTF8AndSize(markdown, &md_size);
         
         hoedown_document_render(self->document, self->buffer, (const uint8_t *) md, md_size);
         
@@ -126,8 +135,7 @@ static PyObject *Hoep_render(Hoep *self, PyObject *args) {
     if (self->render_flags & HOEP_HTML_SMARTYPANTS) {
         smartypants = PyUnicode_DecodeUTF8((const char *) self->buffer->data, self->buffer->size, "strict");
         
-        Py_ssize_t sp_size;
-        const uint8_t *sp = (const uint8_t *) PyUnicode_AsUTF8AndSize(smartypants, &sp_size);
+        sp = (const uint8_t *) PyUnicode_AsUTF8AndSize(smartypants, &sp_size);
         
         hoedown_buffer_reset(self->buffer);
         hoedown_html_smartypants(self->buffer, sp, sp_size);
@@ -149,7 +157,7 @@ static PyObject *Hoep_render(Hoep *self, PyObject *args) {
     return html;
     
     exc_post:;
-        PyObject *message = PyUnicode_FromFormat("must return str, %s received", Py_TYPE(html)->tp_name);
+        message = PyUnicode_FromFormat("must return str, %s received", Py_TYPE(html)->tp_name);
         
         PyErr_SetString(PyExc_TypeError, PyUnicode_AsUTF8(message));
         
