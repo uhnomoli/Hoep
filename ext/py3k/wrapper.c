@@ -68,9 +68,15 @@ static int process(void *opaque, hoedown_buffer *buffer, const char *method_name
 
 /* Block level callbacks. */
 static void hoep_block_code(hoedown_buffer *buffer, const hoedown_buffer *text, const hoedown_buffer *language, void *opaque) {
-    process(opaque, buffer, "block_code", "(s#s#)",
-        text->data, text->size,
-        language->data, language->size);
+    if (!language) {
+        process(opaque, buffer, "block_code", "(s#s)",
+            text->data, text->size,
+            NULL);
+    } else {
+        process(opaque, buffer, "block_code", "(s#s#)",
+            text->data, text->size,
+            language->data, language->size);
+    }
 }
 
 static void hoep_block_html(hoedown_buffer *buffer, const hoedown_buffer *text, void *opaque) {

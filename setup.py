@@ -204,7 +204,7 @@ _sources = [
 
 setup(
     name = 'hoep',
-    version = '1.0.1',
+    version = '1.0.2-dev',
     author = 'Andrew Fricke',
     author_email = 'andrew@uhnomoli.com',
     url = 'https://github.com/Anomareh/Hoep',
