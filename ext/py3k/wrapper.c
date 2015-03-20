@@ -2,7 +2,7 @@
 
 #include <stdarg.h>
 
-#include "../hoedown/html.h"
+#include "../hoedown/src/html.h"
 
 
 static PyObject *call_method(void *opaque, const char *method_name, const char *format, va_list va_args) {
@@ -160,7 +160,7 @@ static void hoep_table_cell(hoedown_buffer *buffer, const hoedown_buffer *text, 
 
 
 /* Span level callbacks. */
-static int hoep_autolink(hoedown_buffer *buffer, const hoedown_buffer *link, enum hoedown_autolink type, void *opaque) {
+static int hoep_autolink(hoedown_buffer *buffer, const hoedown_buffer *link, enum hoedown_autolink_type type, void *opaque) {
     PyObject *is_email;
     int ret;
     

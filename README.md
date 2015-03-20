@@ -66,15 +66,10 @@ You can enable multiple extensions by bitwise ORing them.
 You can enable multiple render flags by bitwise ORing them.
 
 + `HTML_ESCAPE`: All HTML is escaped.
-+ `HTML_EXPAND_TABS`: Tabs are expanded to spaces.
 + `HTML_HARD_WRAP`: Line breaks are translated into `<br>` tags.
 + `HTML_SAFELINK`: Only links to safe protocols are allowed.
 + `HTML_SKIP_HTML`: All HTML tags are stripped.
-+ `HTML_SKIP_IMAGES`: Images are ignored.
-+ `HTML_SKIP_LINKS`: Links are ignored.
-+ `HTML_SKIP_STYLE`: `<style>` tags are stripped.
 + `HTML_SMARTYPANTS`: Enables SmartyPants.
-+ `HTML_TOC`: Anchors are added to headers.
 + `HTML_USE_XHTML`: Renders XHTML instead of HTML.
 
 

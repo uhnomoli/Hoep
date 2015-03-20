@@ -1,4 +1,4 @@
-#include "../hoedown/html.h"
+#include "../hoedown/src/html.h"
 
 
 extern struct hoedown_renderer hoep_callbacks;

@@ -1,7 +1,7 @@
 #include <Python.h>
 #include <structmember.h>
 
-#include "../hoedown/html.h"
+#include "../hoedown/src/html.h"
 
 #include "wrapper.h"
 
@@ -268,7 +268,6 @@ PyMODINIT_FUNC PyInit_hoep(void) {
     PyModule_AddIntConstant(mod, "EXT_FENCED_CODE", HOEDOWN_EXT_FENCED_CODE);
     PyModule_AddIntConstant(mod, "EXT_FOOTNOTES", HOEDOWN_EXT_FOOTNOTES);
     PyModule_AddIntConstant(mod, "EXT_HIGHLIGHT", HOEDOWN_EXT_HIGHLIGHT);
-    PyModule_AddIntConstant(mod, "EXT_LAX_SPACING", HOEDOWN_EXT_LAX_SPACING);
     PyModule_AddIntConstant(mod, "EXT_NO_INTRA_EMPHASIS", HOEDOWN_EXT_NO_INTRA_EMPHASIS);
     PyModule_AddIntConstant(mod, "EXT_QUOTE", HOEDOWN_EXT_QUOTE);
     PyModule_AddIntConstant(mod, "EXT_SPACE_HEADERS", HOEDOWN_EXT_SPACE_HEADERS);
@@ -278,15 +277,9 @@ PyMODINIT_FUNC PyInit_hoep(void) {
     PyModule_AddIntConstant(mod, "EXT_UNDERLINE", HOEDOWN_EXT_UNDERLINE);
     
     PyModule_AddIntConstant(mod, "HTML_ESCAPE", HOEDOWN_HTML_ESCAPE);
-    PyModule_AddIntConstant(mod, "HTML_EXPAND_TABS", HOEDOWN_HTML_EXPAND_TABS);
     PyModule_AddIntConstant(mod, "HTML_HARD_WRAP", HOEDOWN_HTML_HARD_WRAP);
-    PyModule_AddIntConstant(mod, "HTML_SAFELINK", HOEDOWN_HTML_SAFELINK);
     PyModule_AddIntConstant(mod, "HTML_SKIP_HTML", HOEDOWN_HTML_SKIP_HTML);
-    PyModule_AddIntConstant(mod, "HTML_SKIP_IMAGES", HOEDOWN_HTML_SKIP_IMAGES);
-    PyModule_AddIntConstant(mod, "HTML_SKIP_LINKS", HOEDOWN_HTML_SKIP_LINKS);
-    PyModule_AddIntConstant(mod, "HTML_SKIP_STYLE", HOEDOWN_HTML_SKIP_STYLE);
     PyModule_AddIntConstant(mod, "HTML_SMARTYPANTS", HOEP_HTML_SMARTYPANTS);
-    PyModule_AddIntConstant(mod, "HTML_TOC", HOEDOWN_HTML_TOC);
     PyModule_AddIntConstant(mod, "HTML_USE_XHTML", HOEDOWN_HTML_USE_XHTML);
     
     PyModule_AddIntConstant(mod, "TABLE_ALIGN_CENTER", HOEDOWN_TABLE_ALIGN_CENTER);

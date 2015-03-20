@@ -2,7 +2,7 @@
 
 #include <stdarg.h>
 
-#include "../hoedown/html.h"
+#include "../hoedown/src/html.h"
 
 
 static PyObject *to_unicode(const hoedown_buffer *buffer) {
@@ -226,7 +226,7 @@ static void hoep_table_cell(hoedown_buffer *buffer, const hoedown_buffer *text, 
 
 
 /* Span level callbacks. */
-static int hoep_autolink(hoedown_buffer *buffer, const hoedown_buffer *link, enum hoedown_autolink type, void *opaque) {
+static int hoep_autolink(hoedown_buffer *buffer, const hoedown_buffer *link, enum hoedown_autolink_type type, void *opaque) {
     PyObject *ulink, *is_email;
     int ret;
     
