@@ -73,15 +73,10 @@ Render flags
 You can enable multiple render flags by bitwise ORing them.
 
 -  ``HTML_ESCAPE``: All HTML is escaped.
--  ``HTML_EXPAND_TABS``: Tabs are expanded to spaces.
 -  ``HTML_HARD_WRAP``: Line breaks are translated into ``<br>`` tags.
 -  ``HTML_SAFELINK``: Only links to safe protocols are allowed.
 -  ``HTML_SKIP_HTML``: All HTML tags are stripped.
--  ``HTML_SKIP_IMAGES``: Images are ignored.
--  ``HTML_SKIP_LINKS``: Links are ignored.
--  ``HTML_SKIP_STYLE``: ``<style>`` tags are stripped.
 -  ``HTML_SMARTYPANTS``: Enables SmartyPants.
--  ``HTML_TOC``: Anchors are added to headers.
 -  ``HTML_USE_XHTML``: Renders XHTML instead of HTML.
 
 
@@ -190,21 +185,21 @@ _version = '2' if version_info[0] == 2 else '3'
 _sources = [
     'ext/py{0}k/hoep.c'.format(_version),
     'ext/py{0}k/wrapper.c'.format(_version),
-    'ext/hoedown/autolink.c',
-    'ext/hoedown/buffer.c',
-    'ext/hoedown/document.c',
-    'ext/hoedown/escape.c',
-    'ext/hoedown/html.c',
-    'ext/hoedown/html_blocks.c',
-    'ext/hoedown/html_smartypants.c',
-    'ext/hoedown/stack.c',
-    'ext/hoedown/version.c'
+    'ext/hoedown/src/autolink.c',
+    'ext/hoedown/src/buffer.c',
+    'ext/hoedown/src/document.c',
+    'ext/hoedown/src/escape.c',
+    'ext/hoedown/src/html.c',
+    'ext/hoedown/src/html_blocks.c',
+    'ext/hoedown/src/html_smartypants.c',
+    'ext/hoedown/src/stack.c',
+    'ext/hoedown/src/version.c'
 ]
 
 
 setup(
     name = 'hoep',
-    version = '1.0.2',
+    version = '2.0.0',
     author = 'Andrew Fricke',
     author_email = 'andrew@uhnomoli.com',
     url = 'https://github.com/Anomareh/Hoep',

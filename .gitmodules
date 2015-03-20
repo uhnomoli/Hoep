@@ -1,0 +1,3 @@
+[submodule "ext/hoedown"]
+	path = ext/hoedown
+	url = https://github.com/hoedown/hoedown.git
