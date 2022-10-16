@@ -1,7 +1,5 @@
 # Hoep
 
-![Build status][travis-ci]
-
 Hoep is a Python binding for the [Hoedown][hoedown] Markdown library.
 
 
@@ -167,6 +165,4 @@ If you run into any issues or have any questions, either open an [issue][github-
 [irc-webchat]: http://webchat.freenode.net/?channels=mynt
 [syntax-footnotes]: http://michelf.ca/projects/php-markdown/extra/#footnotes
 [syntax-tables]: http://michelf.ca/projects/php-markdown/extra/#table
-
-[travis-ci]: https://api.travis-ci.org/repositories/uhnomoli/Hoep.png?branch=master
 
