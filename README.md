@@ -162,10 +162,11 @@ html = md.render('Some ~~bold~~ __"strong"__ text.')
 If you run into any issues or have any questions, either open an [issue][github-issues] or hop in [#mynt][irc-webchat] on irc.freenode.net.
 
 
-[github-issues]: https://github.com/Anomareh/Hoep/issues
+[github-issues]: https://github.com/uhnomoli/Hoep/issues
 [hoedown]: https://github.com/hoedown/hoedown
 [irc-webchat]: http://webchat.freenode.net/?channels=mynt
 [syntax-footnotes]: http://michelf.ca/projects/php-markdown/extra/#footnotes
 [syntax-tables]: http://michelf.ca/projects/php-markdown/extra/#table
 
-[travis-ci]: https://api.travis-ci.org/repositories/Anomareh/Hoep.png?branch=master
+[travis-ci]: https://api.travis-ci.org/repositories/uhnomoli/Hoep.png?branch=master
+

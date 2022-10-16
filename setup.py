@@ -177,7 +177,7 @@ If you run into any issues or have any questions, either open an `issue`_ or hop
 
 .. _#mynt: http://webchat.freenode.net/?channels=mynt
 .. _Hoedown: https://github.com/hoedown/hoedown
-.. _issue: https://github.com/Anomareh/Hoep/issues
+.. _issue: https://github.com/uhnomoli/Hoep/issues
 .. _Markdown Extra style footnotes: http://michelf.ca/projects/php-markdown/extra/#footnotes
 .. _Markdown Extra style tables: http://michelf.ca/projects/php-markdown/extra/#table
 '''
@@ -204,10 +204,10 @@ _sources = [
 
 setup(
     name = 'hoep',
-    version = '1.0.2',
+    version = '1.0.3-dev',
     author = 'Andrew Fricke',
     author_email = 'andrew@uhnomoli.com',
-    url = 'https://github.com/Anomareh/Hoep',
+    url = 'https://github.com/uhnomoli/Hoep',
     description = 'A Python binding for the Hoedown Markdown library.',
     long_description = __doc__,
     license = 'BSD',
@@ -239,3 +239,4 @@ setup(
         'Topic :: Utilities'
     ]
 )
+
