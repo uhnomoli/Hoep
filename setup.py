@@ -184,6 +184,7 @@ If you run into any issues or have any questions, either open an `issue`_ or hop
 from sys import version_info
 
 from setuptools import Extension, setup
+import sysconfig
 
 
 _version = '2' if version_info[0] == 2 else '3'
@@ -201,6 +202,8 @@ _sources = [
     'ext/hoedown/version.c'
 ]
 
+extra_compile_args = sysconfig.get_config_var('CFLAGS').split()
+extra_compile_args += ["-DPY_SSIZE_T_CLEAN"]
 
 setup(
     name = 'hoep',
@@ -216,6 +219,7 @@ setup(
     ext_modules = [
         Extension(
             'hoep',
+            extra_compile_args = extra_compile_args,
             sources = _sources
         )
     ],
